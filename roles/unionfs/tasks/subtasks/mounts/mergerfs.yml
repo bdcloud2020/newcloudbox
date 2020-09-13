@@ -1,0 +1,31 @@
+#########################################################################
+# Title:         Cloudbox: UnionFS | MergerFS Tasks                     #
+# Author(s):     EnorMOZ, desimaniac                                    #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: "MergerFS | Get URL for latest mergerfs release"
+  shell: "{{ mergerfs_release_lookup_command }}"
+  args:
+    executable: /bin/bash
+    warn: no
+  register: mergerfs_download_url
+  ignore_errors: yes
+
+- name: "MergerFS | Install mergerfs"
+  apt:
+    deb: "{{ mergerfs_download_url.stdout | default('{{ mergerfs_download_url_backup }}') }}"
+    state: present
+
+- name: "MergerFS | Import 'mergerfs.service'"
+  template:
+    src: mergerfs.service.j2
+    dest: /etc/systemd/system/mergerfs.service
+    force: "{{ 'yes' if ('mounts_override' in ansible_run_tags) else 'no' }}"
+
+- name: "MergerFS | Start 'mergerfs.service'"
+  systemd: name=mergerfs.service state=started enabled=yes daemon_reload=yes

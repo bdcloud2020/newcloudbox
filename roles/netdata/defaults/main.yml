@@ -1,0 +1,152 @@
+##########################################################################
+# Title:         Cloudbox: Netdata | Default Variables                   #
+# Author(s):     desimaniac                                              #
+# URL:           https://github.com/cloudbox/cloudbox                    #
+# --                                                                     #
+#         Part of the Cloudbox project: https://cloudbox.works           #
+##########################################################################
+#                   GNU General Public License v3.0                      #
+##########################################################################
+---
+################################
+# Basics
+################################
+
+netdata_name: netdata
+
+################################
+# Paths
+################################
+
+netdata_paths_folder: "{{ netdata_name }}"
+netdata_paths_location: "{{ server_appdata_path }}/{{ netdata_paths_folder }}"
+netdata_paths_downloads_location: "{{ downloads.nzbs }}/{{ netdata_paths_folder }}"
+netdata_paths_folders_list:
+  - "{{ netdata_paths_location }}"
+netdata_paths_config_override_location: "{{ netdata_paths_location }}/override"
+
+################################
+# Web
+################################
+
+netdata_web_subdomain: "{{ netdata_name }}"
+netdata_web_domain: "{{ user.domain }}"
+netdata_web_port: "19999"
+netdata_web_url: "{{ 'https://' + netdata_web_subdomain + '.' + netdata_web_domain
+                      if (reverse_proxy_is_enabled)
+                      else 'http://localhost:' + netdata_web_port }}"
+
+################################
+# DNS
+################################
+
+netdata_dns_record: "{{ netdata_web_subdomain }}"
+netdata_dns_zone: "{{ netdata_web_domain }}"
+
+################################
+# Reverse Proxy
+################################
+
+netdata_reverse_proxy_virtual_host: "{{ netdata_web_subdomain }}.{{ netdata_web_domain }}"
+netdata_reverse_proxy_virtual_port: "{{ netdata_web_port }}"
+
+netdata_reverse_proxy_letsencrypt_host: "{{ netdata_web_subdomain }}.{{ netdata_web_domain }}"
+netdata_reverse_proxy_letsencrypt_email: "{{ user.email }}"
+
+################################
+# Docker
+################################
+
+# Container
+netdata_docker_container: "{{ netdata_name }}"
+
+# Image
+netdata_docker_image_pull: yes
+netdata_docker_image_tag: "latest"
+netdata_docker_image: "titpetric/netdata:{{ netdata_docker_image_tag }}"
+
+# Ports
+netdata_docker_ports_defaults:
+  - "{{ netdata_web_port }}:{{ netdata_web_port }}"
+netdata_docker_ports_custom: []
+netdata_docker_ports: "{{ netdata_docker_ports_defaults
+                              + netdata_docker_ports_custom
+                          if (not reverse_proxy_is_enabled)
+                          else [] + netdata_docker_ports_custom }}"
+
+# Envs
+netdata_docker_envs_default:
+  TZ: "{{ tz }}"
+netdata_docker_envs_custom: {}
+netdata_docker_envs_reverse_proxy: {}
+netdata_docker_envs: "{{ netdata_docker_envs_default
+                            | combine(netdata_docker_envs_custom)
+                            | combine(netdata_docker_envs_reverse_proxy)
+                            | combine(docker_envs_reverse_proxy_common)
+                        if (reverse_proxy_is_enabled)
+                        else netdata_docker_envs_default
+                            | combine(netdata_docker_envs_custom) }}"
+
+# Volumes
+netdata_docker_volumes_config_override:
+  - "{{ netdata_paths_config_override_location }}:/etc/netdata/override:ro"
+netdata_docker_volumes_default:
+  - "{{ netdata_paths_location }}:/config"
+  - "/proc:/host/proc:ro"
+  - "/sys:/host/sys:ro"
+  - "/var/run/docker.sock:/var/run/docker.sock"
+netdata_docker_volumes_custom: []
+netdata_docker_volumes: "{{ netdata_docker_volumes_default
+                                + netdata_docker_volumes_custom
+                                + docker_volumes_downloads_common }}"
+
+# Devices
+netdata_docker_devices_default: []
+netdata_docker_devices_custom: []
+netdata_docker_devices: "{{ netdata_docker_devices_default
+                                + netdata_docker_devices_custom }}"
+
+# Hosts
+netdata_docker_hosts_default: []
+netdata_docker_hosts_custom: []
+netdata_docker_hosts: "{{ docker_hosts_common
+                              | combine(netdata_docker_hosts_default)
+                              | combine(netdata_docker_hosts_custom) }}"
+
+# Labels
+netdata_docker_labels_default: {}
+netdata_docker_labels_custom: {}
+netdata_docker_labels: "{{ docker_labels_common
+                              | combine(netdata_docker_labels_default)
+                              | combine(netdata_docker_labels_custom) }}"
+
+# Hostname
+netdata_docker_hostname: "{{ netdata_name }}"
+
+# Networks
+netdata_docker_networks_alias: "{{ netdata_name }}"
+netdata_docker_networks_default: []
+netdata_docker_networks_custom: []
+netdata_docker_networks: "{{ docker_networks_common
+                                + netdata_docker_networks_default
+                                + netdata_docker_networks_custom }}"
+
+# Capabilities
+netdata_docker_capabilities_default:
+  - SYS_PTRACE
+netdata_docker_capabilities_custom: []
+netdata_docker_capabilities: "{{ netdata_docker_capabilities_default
+                                    + netdata_docker_capabilities_custom }}"
+
+# Security Opts
+netdata_docker_security_opts_default:
+  - apparmor:unconfined
+netdata_docker_security_opts_custom: []
+netdata_docker_security_opts: "{{ netdata_docker_security_opts_default
+                                      + netdata_docker_security_opts_custom }}"
+
+# Restart Policy
+netdata_docker_restart_policy: unless-stopped
+
+# State
+netdata_docker_state: started

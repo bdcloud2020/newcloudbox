@@ -1,0 +1,32 @@
+#########################################################################
+# Title:         Cloudbox: ngrok Role                                   #
+# Author(s):     l3uddz, desimaniac                                     #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Install ngrok
+  unarchive:
+    src: "{{ ngrok_download_url }}"
+    dest: "{{ ngrok_binary_path | dirname }}"
+    copy: no
+    mode: 0775
+    validate_certs: no
+  ignore_errors: yes
+  register: ngrok_download_status
+
+- name: Tasks to do when ngrok download is successful
+  block:
+
+  - name: Get ngrok binary version
+    shell: "{{ ngrok_binary_version_lookup_command }}"
+    register: ngrok_binary_version
+
+  - name: Display ngrok binary version
+    debug:
+      msg: "ngrok {{ ngrok_binary_version.stdout }} installed."
+
+  when: ngrok_download_status is succeeded

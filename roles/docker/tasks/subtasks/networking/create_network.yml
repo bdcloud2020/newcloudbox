@@ -1,0 +1,20 @@
+#########################################################################
+# Title:         Cloudbox: Docker | Networking | Create Network         #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Networking | Create Network | Lookup '{{ docker_networks_common_default_name }}' Docker network
+  docker_network_info:
+    name: "{{ docker_networks_common_default_name }}"
+  register: _docker_networks_common_default_name_lookup
+
+- name: Networking | Create Network | Create '{{ docker_networks_common_default_name }}' Docker network
+  docker_network:
+    name: "{{ docker_networks_common_default_name }}"
+    state: present
+  when: not _docker_networks_common_default_name_lookup.exists

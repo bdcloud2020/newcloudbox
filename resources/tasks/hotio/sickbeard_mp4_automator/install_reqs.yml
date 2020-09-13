@@ -1,0 +1,35 @@
+##############################################################################
+# Title:         Cloudbox: Resources | Tasks | Hotio | SMA | Install Reqs    #
+# Author(s):     desimaniac                                                  #
+# URL:           https://github.com/cloudbox/cloudbox                        #
+# --                                                                         #
+#         Part of the Cloudbox project: https://cloudbox.works               #
+##############################################################################
+#                   GNU General Public License v3.0                          #
+##############################################################################
+---
+- name: Set 'script_d_path' variable
+  set_fact:
+    script_d_path: "{{ lookup('vars', role_name + '_paths_location') }}/script.d"
+    sma_req_is_to_be_installed: "{{ ('hotio' in lookup('vars', role_name + '_docker_image')) and (use_sma) }}"
+
+- name: Create directories
+  file: "path={{ item }} state=directory owner={{ user.name }} group={{ user.name }} mode=0775"
+  with_items:
+    - "{{ script_d_path }}"
+
+- name: Import 'sma_req.sh' script
+  copy:
+    src: "{{ resources_tasks_path }}/hotio/sickbeard_mp4_automator/files/99-sma_req.sh"
+    dest: "{{ script_d_path }}/99-sma_req.sh"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: 0775
+    force: yes
+  when: sma_req_is_to_be_installed
+
+- name: Remove 'sma_req.sh' script
+  file:
+    path: "{{ script_d_path }}/99-sma_req.sh"
+    state: absent
+  when: not sma_req_is_to_be_installed

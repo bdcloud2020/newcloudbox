@@ -1,0 +1,37 @@
+#########################################################################
+# Title:         Cloudbox: Docker | Packages Task                       #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Packages | Uninstall 'docker-py' pip module
+  pip:
+    name: docker-py
+    state: absent
+  ignore_errors: yes
+
+- name: Packages | Add Docker APT repository gpg signing key
+  apt_key:
+    id: "{{ docker_packages_docker_apt_key_id }}"
+    url: "{{ docker_packages_docker_apt_key_url }}"
+
+- name: Packages | Add Docker APT repository
+  apt_repository:
+    repo: "{{ docker_packages_docker_apt_repo_url }}"
+    filename: "{{ docker_packages_docker_apt_repo_filename }}"
+    update_cache: yes
+
+- name: Packages | Install Docker packages
+  include_tasks: "main2.yml"
+  loop:
+    - 'docker_ce'
+    - 'docker_ce_cli'
+    - 'containerd_io'
+
+- name: Packages | Install 'docker' pip module
+  raw: pip install docker
+  ignore_errors: yes

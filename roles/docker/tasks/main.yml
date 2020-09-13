@@ -1,0 +1,102 @@
+#########################################################################
+# Title:         Cloudbox: Docker Role                                  #
+# Author(s):     l3uddz, desimaniac, EnorMOZ                            #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Check filesystem of '/var/lib/' path
+  shell: stat -f -c %T /var/lib/
+  register: var_lib_file_system
+  changed_when: false
+
+- name: Check to see if Docker is installed
+  stat:
+    path: "/usr/bin/docker"
+  register: docker_binary
+
+- name: Tasks for when Docker is installed
+  block:
+
+  - name: Populate Service Facts
+    service_facts:
+
+  - name: Get Docker service state
+    set_fact:
+      docker_service_running: "{{ (services['docker.service'] is defined)
+                                      and (services['docker.service']['state'] == 'running') }}"
+
+  - name: Tasks for when Docker is installed and is running
+    block:
+
+    - name: Gather list of running Docker containers
+      shell: "docker ps --format '{{ '{{' }} .Names{{ '}}' }}' | sort | xargs echo -n"
+      register: docker_running_containers
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Stop all running Docker containers
+      shell: "docker stop {{ docker_running_containers.stdout }} &> /dev/null || true"
+      ignore_errors: yes
+      when: (docker_running_containers.stdout | trim | length > 0)
+
+    - name: BTRFS Cleanup Tasks
+      include_tasks: "subtasks/btrfs/cleanup.yml"
+      when: ('btrfs' in var_lib_file_system.stdout)
+
+    - name: Stop Docker service
+      systemd:
+        name: docker
+        state: stopped
+      when: ('btrfs' not in var_lib_file_system.stdout)
+
+    when: (docker_service_running)
+
+  when: (docker_binary.stat.exists)
+
+- name: Docker Packages Task
+  include_tasks: "subtasks/packages/main.yml"
+
+- name: BTRFS Psuedo-File-System Tasks
+  include_tasks: "subtasks/btrfs/pseudo_file_system.yml"
+  when: ('btrfs' in var_lib_file_system.stdout)
+
+- name: Docker Daemon Tasks
+  import_tasks: "subtasks/daemon.yml"
+
+- name: Start Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Wait for 60 seconds before commencing
+  wait_for:
+    timeout: 60
+
+- name: "Stop all Docker containers"
+  shell: docker stop $(docker ps -aq) &> /dev/null || true
+
+- name: Docker Networking Tasks
+  import_tasks: "subtasks/networking/main.yml"
+
+- name: Docker Housekeeping Tasks
+  import_tasks: "subtasks/housekeeping.yml"
+  tags: docker-housekeeping
+
+- name: Re-start all previously running Docker containers
+  shell: 'docker start {{ docker_running_containers.stdout }}'
+  when:
+    - (docker_binary.stat.exists)
+    - (docker_service_running)
+    - (docker_running_containers.stdout | trim | length > 0)
+  ignore_errors: yes
+
+- name: Install 'ctop'
+  import_role:
+    name: ctop
+  tags: ctop

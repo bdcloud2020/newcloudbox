@@ -1,0 +1,70 @@
+#########################################################################
+# Title:         Cloudbox: Plex-Extra-Tasks Role                        #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Check to see if Plex is running
+  block:
+
+  - name: Gather list of running Docker containers
+    shell: "docker ps --format '{{ '{{' }} .Names{{ '}}' }}' | sort | xargs echo -n"
+    register: docker_running_containers_list
+    changed_when: no
+
+  - name: Set 'docker_running_containers_list' variable
+    set_fact:
+      docker_running_containers_list: "{{ (docker_running_containers_list.stdout).split() }}"
+
+  - name: Set 'plex_is_running_outer_state' variable
+    set_fact:
+      plex_is_running_outer_state: "{{ plex_docker_container in docker_running_containers_list }}"
+
+  - name: Plex Post-Install Checks
+    import_tasks: "subtasks/post_install_checks.yml"
+
+  - name: Stop Docker Container
+    docker_container:
+      name: "{{ plex_docker_container }}"
+      state: stopped
+    when: plex_is_running_outer_state
+
+  tags:
+    - plex-db-cache-size
+    - plex-forced-quality
+
+- name: "DB Cache Size Settings"
+  import_tasks: "subtasks/settings/db_cache_size.yml"
+  tags:
+    - plex-db-cache-size
+
+- name: "Forced Automatic Quality Settings"
+  import_tasks: "subtasks/settings/forced_quality.yml"
+  tags:
+    - plex-forced-quality
+
+- name: "Install Sub-Zero Plugin"
+  import_role:
+    name: plex-plugins/sub-zero
+
+- name: "Install Trakt.tv Plugin"
+  import_role:
+    name: plex-plugins/trakttv
+
+- name: "Install WebTools Plugin"
+  import_role:
+    name: plex-plugins/webtools
+
+- name: Start Docker Container
+  docker_container:
+    name: "{{ plex_docker_container }}"
+    state: "{{ plex_docker_state }}"
+  when:
+    - plex_is_running_outer_state
+  tags:
+    - plex-db-cache-size
+    - plex-forced-quality

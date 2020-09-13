@@ -1,0 +1,26 @@
+#########################################################################
+# Title:         Cloudbox: Node.js | Node.js                            #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Node.js | Install Node.js
+  shell: "{{ nodejs_nodejs_install_command }}"
+  args:
+    executable: /bin/bash
+    warn: false
+
+- name: Node.js | Get binary version
+  shell: "{{ nodejs_nodejs_binary_version_lookup_command }}"
+  register: nodejs_binary_version
+
+- name: Node.js | Display binary version
+  debug:
+    msg: "Node.js {{ nodejs_binary_version.stdout }} installed."
+  when:
+    - nodejs_binary_version is succeeded
+    - nodejs_binary_version.stdout | trim | length > 0

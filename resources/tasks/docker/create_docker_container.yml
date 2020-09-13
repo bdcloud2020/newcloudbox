@@ -1,0 +1,37 @@
+##################################################################################
+# Title:         Cloudbox: Resources | Tasks | Docker | Create Docker Container  #
+# Author(s):     desimaniac                                                      #
+# URL:           https://github.com/cloudbox/cloudbox                            #
+# --                                                                             #
+#         Part of the Cloudbox project: https://cloudbox.works                   #
+##################################################################################
+#                   GNU General Public License v3.0                              #
+##################################################################################
+---
+- name: Resources | Tasks | Docker | Create Docker Container | Set '_var_prefix' variable
+  set_fact:
+    _var_prefix: "{{ var_prefix
+                      if (var_prefix is defined)
+                      else role_name }}"
+
+- name: Resources | Tasks | Docker | Create Docker Container | Create Docker Container
+  docker_container:
+    name: "{{ lookup('vars', _var_prefix + '_docker_container') }}"
+    image: "{{ lookup('vars', _var_prefix + '_docker_image') }}"
+    pull: "{{ lookup('vars', _var_prefix + '_docker_image_pull', default='yes') }}"
+    published_ports: "{{ lookup('vars', _var_prefix + '_docker_ports', default=omit) }}"
+    env: "{{ lookup('vars', _var_prefix + '_docker_envs', default=omit) }}"
+    volumes: "{{ lookup('vars', _var_prefix + '_docker_volumes', default=omit) }}"
+    devices: "{{ lookup('vars', _var_prefix + '_docker_devices', default=omit) }}"
+    etc_hosts: "{{ lookup('vars', _var_prefix + '_docker_hosts', default=omit) }}"
+    labels: "{{ lookup('vars', _var_prefix + '_docker_labels') }}"
+    hostname: "{{ lookup('vars', _var_prefix + '_docker_hostname', default=omit) }}"
+    networks: "{{ lookup('vars', _var_prefix + '_docker_networks') }}"
+    networks_cli_compatible: yes
+    purge_networks: yes
+    restart_policy: "{{ lookup('vars', _var_prefix + '_docker_restart_policy', default='unless-stopped') }}"
+    capabilities: "{{ lookup('vars', _var_prefix + '_docker_capabilities', default=omit) }}"
+    security_opts: "{{ lookup('vars', _var_prefix + '_docker_security_opts', default=omit) }}"
+    timeout: "{{ lookup('vars', _var_prefix + '_docker_stop_timeout', default='180') }}"
+    stop_timeout: "{{ lookup('vars', _var_prefix + '_docker_stop_timeout', default='180') }}"
+    state: "started"

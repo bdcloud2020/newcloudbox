@@ -1,0 +1,18 @@
+#########################################################################
+# Title:         Cloudbox: Shell Role                                   #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Import 'misc' subtask
+  include_tasks: "subtasks/misc.yml"
+
+- name: Import 'z' subtask
+  include_tasks: "subtasks/z.yml"
+
+- name: Import '{{ shell_type }}' subtask
+  include_tasks: "subtasks/shell/{{ shell_type }}.yml"

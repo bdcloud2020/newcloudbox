@@ -1,0 +1,38 @@
+#########################################################################
+# Title:         Cloudbox: Nvidia | Driver Tasks                        #
+# Author(s):     desimaniac, l3uddz                                     #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Driver | Install 'build-essential'
+  apt:
+    name: build-essential
+    update_cache: yes
+    state: present
+
+- name: Driver | Download Nvidia drivers
+  get_url:
+    url:  "{{ nvidia_driver_download_url }}"
+    dest: "{{ nvidia_driver_download_dest }}"
+    mode: 0775
+    owner: root
+    group: root
+    force: yes
+    validate_certs: no
+  register: driver_download
+
+- name: Driver | Install Nvidia drivers
+  shell: "{{ nvidia_driver_install_command }}"
+  register: driver_install
+  ignore_errors: yes
+
+- name: Driver | Nvidia driver did not install
+  fail:
+    msg:
+      - "{{ driver_install.stdout }}"
+      - "Nvidia driver did not install"
+  when: (driver_install is failed) or ('ERROR' in driver_install.stdout)

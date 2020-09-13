@@ -1,0 +1,13 @@
+#########################################################################
+# Title:         Cloudbox: Kernel | Variables Task                      #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Variables | Set default 'reboot_is_necessary' variable
+  set_fact:
+    reboot_is_necessary: false
