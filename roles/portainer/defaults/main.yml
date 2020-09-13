@@ -1,0 +1,127 @@
+##########################################################################
+# Title:         Cloudbox: Portainer | Default Variables                 #
+# Author(s):     desimaniac                                              #
+# URL:           https://github.com/cloudbox/cloudbox                    #
+# --                                                                     #
+#         Part of the Cloudbox project: https://cloudbox.works           #
+##########################################################################
+#                   GNU General Public License v3.0                      #
+##########################################################################
+---
+################################
+# Basics
+################################
+
+portainer_name: portainer
+
+################################
+# Paths
+################################
+
+portainer_paths_folder: "{{ portainer_name }}"
+portainer_paths_location: "{{ server_appdata_path }}/{{ portainer_paths_folder }}"
+portainer_paths_folders_list:
+  - "{{ portainer_paths_location }}"
+
+################################
+# Web
+################################
+
+portainer_web_subdomain: "{{ portainer_name }}"
+portainer_web_domain: "{{ user.domain }}"
+portainer_web_port: "9000"
+portainer_web_url: "{{ 'https://' + portainer_web_subdomain + '.' + portainer_web_domain
+                        if (reverse_proxy_is_enabled)
+                        else 'http://localhost:' + portainer_web_port }}"
+
+################################
+# Docker
+################################
+
+# Container
+portainer_docker_container: "{{ portainer_name }}"
+
+# Image
+portainer_docker_image_pull: yes
+portainer_docker_image_tag: "latest"
+portainer_docker_image: "portainer/portainer:{{ portainer_docker_image_tag }}"
+
+# Ports
+portainer_docker_ports_defaults:
+  - "{{ portainer_web_port }}:{{ portainer_web_port }}"
+portainer_docker_ports_custom: []
+portainer_docker_ports: "{{ portainer_docker_ports_defaults
+                                + portainer_docker_ports_custom
+                            if (not reverse_proxy_is_enabled)
+                            else [] + portainer_docker_ports_custom }}"
+
+# Envs
+portainer_docker_envs_default:
+  TZ: "{{ tz }}"
+portainer_docker_envs_custom: {}
+portainer_docker_envs_reverse_proxy: {}
+portainer_docker_envs: "{{ portainer_docker_envs_default
+                                | combine(portainer_docker_envs_custom)
+                                | combine(portainer_docker_envs_reverse_proxy)
+                                | combine(docker_envs_reverse_proxy_common)
+                            if (reverse_proxy_is_enabled)
+                            else portainer_docker_envs_default
+                                | combine(portainer_docker_envs_custom) }}"
+
+# Volumes
+portainer_docker_volumes_default:
+  - "{{ portainer_paths_location }}:/data"
+  - "/var/run/docker.sock:/var/run/docker.sock"
+portainer_docker_volumes_custom: []
+portainer_docker_volumes: "{{ portainer_docker_volumes_default
+                                  + portainer_docker_volumes_custom
+                                  + docker_volumes_downloads_common }}"
+
+# Devices
+portainer_docker_devices_default: []
+portainer_docker_devices_custom: []
+portainer_docker_devices: "{{ portainer_docker_devices_default
+                                  + portainer_docker_devices_custom }}"
+
+# Hosts
+portainer_docker_hosts_default: []
+portainer_docker_hosts_custom: []
+portainer_docker_hosts: "{{ docker_hosts_common
+                                | combine(portainer_docker_hosts_default)
+                                | combine(portainer_docker_hosts_custom) }}"
+
+# Labels
+portainer_docker_labels_default: {}
+portainer_docker_labels_custom: {}
+portainer_docker_labels: "{{ docker_labels_common
+                                  | combine(portainer_docker_labels_default)
+                                  | combine(portainer_docker_labels_custom) }}"
+
+# Hostname
+portainer_docker_hostname: "{{ portainer_name }}"
+
+# Networks
+portainer_docker_networks_alias: "{{ portainer_name }}"
+portainer_docker_networks_default: []
+portainer_docker_networks_custom: []
+portainer_docker_networks: "{{ docker_networks_common
+                                    + portainer_docker_networks_default
+                                    + portainer_docker_networks_custom }}"
+
+# Capabilities
+portainer_docker_capabilities_default: []
+portainer_docker_capabilities_custom: []
+portainer_docker_capabilities: "{{ portainer_docker_capabilities_default
+                                        + portainer_docker_capabilities_custom }}"
+
+# Security Opts
+portainer_docker_security_opts_default: []
+portainer_docker_security_opts_custom: []
+portainer_docker_security_opts: "{{ portainer_docker_security_opts_default
+                                        + portainer_docker_security_opts_custom }}"
+
+# Restart Policy
+portainer_docker_restart_policy: unless-stopped
+
+# State
+portainer_docker_state: started

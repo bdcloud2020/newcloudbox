@@ -1,0 +1,11 @@
+---
+downloads:
+  nzbs: /mnt/local/downloads/nzbs
+  torrents: /mnt/local/downloads/torrents
+plex:
+  tag: public
+  transcodes: /mnt/local/transcodes
+rclone:
+  version: latest
+  remote: google
+shell: bash

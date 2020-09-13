@@ -1,0 +1,33 @@
+### MacOS ###
+.DS_Store
+
+### Vagrant ###
+.vagrant/
+*.box
+
+### Python ###
+*.pyc
+
+### Ansible ###
+/backup.lock
+/cloudbox.retry
+
+### Cloudbox ###
+
+# Vars
+/inventories/host_vars/*
+!/inventories/host_vars/.gitkeep
+/roles/*/vars/*
+
+# Settings
+/ansible.cfg
+/accounts.yml
+/settings.yml
+/adv_settings.yml
+/rclone.conf
+/backup_config.yml
+/backup_excludes_list.txt
+
+### Misc ###
+/changelog.txt
+/*.log

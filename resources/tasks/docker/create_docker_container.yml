@@ -1,0 +1,35 @@
+##################################################################################
+# Title:         Cloudbox: Resources | Tasks | Docker | Create Docker Container  #
+# Author(s):     desimaniac                                                      #
+# URL:           https://github.com/cloudbox/cloudbox                            #
+# --                                                                             #
+#         Part of the Cloudbox project: https://cloudbox.works                   #
+##################################################################################
+#                   GNU General Public License v3.0                              #
+##################################################################################
+---
+- name: Resources | Tasks | Docker | Create Docker Container | Set '_var_prefix' variable
+  set_fact:
+    _var_prefix: "{{ var_prefix
+                      if (var_prefix is defined)
+                      else role_name }}"
+
+- name: Resources | Tasks | Docker | Create Docker Container | Create Docker Container
+  docker_container:
+    name: "{{ lookup('vars', _var_prefix + '_docker_container') }}"
+    image: "{{ lookup('vars', _var_prefix + '_docker_image') }}"
+    pull: "{{ lookup('vars', _var_prefix + '_docker_image_pull') }}"
+    published_ports: "{{ lookup('vars', _var_prefix + '_docker_ports') }}"
+    env: "{{ lookup('vars', _var_prefix + '_docker_envs') }}"
+    volumes: "{{ lookup('vars', _var_prefix + '_docker_volumes') }}"
+    devices: "{{ lookup('vars', _var_prefix + '_docker_devices') }}"
+    etc_hosts: "{{ lookup('vars', _var_prefix + '_docker_hosts') }}"
+    labels: "{{ lookup('vars', _var_prefix + '_docker_labels') }}"
+    hostname: "{{ lookup('vars', _var_prefix + '_docker_hostname') }}"
+    networks: "{{ lookup('vars', _var_prefix + '_docker_networks') }}"
+    networks_cli_compatible: yes
+    restart_policy: "{{ lookup('vars', _var_prefix + '_docker_restart_policy') }}"
+    capabilities: "{{ lookup('vars', _var_prefix + '_docker_capabilities') }}"
+    security_opts: "{{ lookup('vars', _var_prefix + '_docker_security_opts') }}"
+    stop_timeout: "{{ lookup('vars', _var_prefix + '_docker_stop_timeout', default='180') }}"
+    state: "started"
