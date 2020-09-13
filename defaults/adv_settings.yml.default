@@ -1,0 +1,39 @@
+---
+system:
+  timezone: auto
+docker:
+  repo: edge
+  version: latest
+mounts:
+  unionfs: mergerfs
+  remote: rclone_vfs
+plex:
+  open_port: no
+  all_ports: no
+  force_auto_adjust_quality: no
+  force_high_output_bitrates: no
+  db_cache_size: default
+suitarr:
+  version: default
+sonarr:
+  version: v3
+darkerr:
+  enable: no
+emby:
+  version: latest
+organizr:
+  direct_domain: no
+nginx:
+  direct_domain: no
+  subdomain: web
+ombi:
+  subdomain: ombi
+plexrequests:
+  subdomain: plexrequests
+sickbeard_mp4_automator: no
+gpu:
+  intel: yes
+  nvidia: no
+hetzner_nfs:
+  vlan_id: 4000
+  mount_client: 3
