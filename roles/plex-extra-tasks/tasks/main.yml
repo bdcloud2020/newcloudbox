@@ -1,0 +1,29 @@
+#########################################################################
+# Title:         Cloudbox: Plex Extra Tasks Role                        #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Check to see if Plex is installed
+  block:
+
+  - name: Gather list of installed Docker containers
+    shell: "docker ps -a --format '{{ '{{' }} .Names{{ '}}' }}' | sort | xargs echo -n"
+    register: docker_installed_containers_list
+    changed_when: no
+
+  - name: Set 'docker_installed_containers_list' variable
+    set_fact:
+      docker_installed_containers_list: "{{ (docker_installed_containers_list.stdout).split() }}"
+
+  tags:
+    - plex-db-cache-size
+    - plex-forced-quality
+
+- name: "Continue when Plex Docker container exists"
+  import_tasks: "main2.yml"
+  when: (plex_docker_container in docker_installed_containers_list)

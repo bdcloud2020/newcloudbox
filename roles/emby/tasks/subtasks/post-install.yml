@@ -1,0 +1,34 @@
+##########################################################################
+# Title:         Cloudbox: Emby | Post-Install Tasks                     #
+# Author(s):     desimaniac                                              #
+# URL:           https://github.com/cloudbox/cloudbox                    #
+# --                                                                     #
+#         Part of the Cloudbox project: https://cloudbox.works           #
+##########################################################################
+#                   GNU General Public License v3.0                      #
+##########################################################################
+---
+- name: Post-Install | Wait 10 seconds before continuing
+  wait_for:
+    timeout: 10
+
+- name: Post-Install | Ensure transcodes folder has the correct permissions
+  file:
+    path: "{{ emby_paths_transcodes_location }}"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: 0775
+    recurse: yes
+
+- name: Post-Install | Import 'dlna.xml'
+  copy:
+    src: "dlna.xml"
+    dest: "{{ emby_paths_dlna_xml_location }}"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: 0775
+    force: no
+
+- name: Post-Install | Settings Tasks
+  import_tasks: "settings.yml"
+  when: reverse_proxy_is_enabled
