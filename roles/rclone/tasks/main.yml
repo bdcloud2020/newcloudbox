@@ -1,0 +1,21 @@
+#########################################################################
+# Title:         Cloudbox: Rclone Role                                  #
+# Author(s):     l3uddz, desimaniac                                     #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Uninstall Legacy Rclone
+  include_tasks: "uninstall_legacy.yml"
+
+- name: Build URL
+  import_tasks: "build_url.yml"
+
+- name: Install Binary
+  import_tasks: "install_binary.yml"
+
+- name: Import Existing Config
+  import_tasks: "import_config.yml"

@@ -1,0 +1,29 @@
+---
+mounts:
+  unionfs: unionfs
+  remote: plexdrive
+docker:
+  local_ip: "0.0.0.0" 
+plex:
+  open_port: no
+  force_auto_adjust_quality: no
+  force_high_output_bitrates: no
+  db_cache_size: default
+suitarr:
+  version: default
+sonarr:
+  version: unstable
+darkerr:
+  enable: no
+emby:
+  version: latest
+organizr:
+  direct_domain: no
+nginx:
+  direct_domain: no
+  subdomain: web
+ombi:
+  subdomain: ombi
+plexrequests:
+  subdomain: plexrequests
+sickbeard_mp4_automator: no

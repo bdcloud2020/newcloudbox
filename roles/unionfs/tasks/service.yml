@@ -1,0 +1,63 @@
+#########################################################################
+# Title:         UnionFS: Service Tasks                                 #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Check if 'unionfs.service' exists
+  stat:
+    path: "/etc/systemd/system/unionfs.service"
+  register: unionfs_service
+
+- name: Tasks for 'unionfs.service'
+  block:
+
+  - name: Stop and disable existing 'unionfs.service'
+    systemd: name=unionfs state=stopped enabled=no
+
+  - name: Replace '/mnt/plexdrive' with '/mnt/remote' in 'unionfs.service'
+    replace:
+      path: /etc/systemd/system/unionfs.service
+      regexp: "\\/mnt\\/plexdrive"
+      replace: '/mnt/remote'
+
+  - name: Reset ownership in existing 'unionfs.service'
+    lineinfile:
+      path: "/etc/systemd/system/unionfs.service"
+      regexp: "{{item.regexp}}"
+      line: "{{item.line}}"
+      state: present
+    with_items:
+      - { regexp: '^User\s?=', line: 'User={{user}}' }
+      - { regexp: '^Group\s?=', line: 'Group={{user}}' }
+
+  - name: Systemd daemon-reload
+    systemd: daemon_reload=yes
+
+  when: (unionfs_service.stat.exists)
+
+- name: Check if 'mergerfs.service' exists
+  stat:
+    path: "/etc/systemd/system/mergerfs.service"
+  register: mergerfs_service
+
+- name: Tasks for 'mergerfs.service'
+  block:
+
+  - name: Stop and disable existing 'mergerfs.service'
+    systemd: name=mergerfs state=stopped enabled=no
+
+  - name: Replace '/mnt/plexdrive' with '/mnt/remote' in 'mergerfs.service'
+    replace:
+      path: /etc/systemd/system/mergerfs.service
+      regexp: "\\/mnt\\/plexdrive"
+      replace: '/mnt/remote'
+
+  - name: Systemd daemon-reload
+    systemd: daemon_reload=yes
+
+  when: (mergerfs_service.stat.exists)

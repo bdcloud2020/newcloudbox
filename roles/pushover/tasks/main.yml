@@ -1,0 +1,36 @@
+#########################################################################
+# Title:         Cloudbox: Pushover Role                                #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: "Pushover Message"
+  pushover:
+    msg: "{{message}}"
+    app_token: "{{ pushover.app_token }}"
+    user_key: "{{ pushover.user_key }}"
+    pri: "{{ pushover.priority | default(0,true) }}"
+  when: not(
+      (pushover is undefined)
+      or
+      (pushover is none)
+      or
+      (pushover | trim == '')
+      or
+      (pushover.app_token is undefined)
+      or
+      (pushover.app_token is none)
+      or
+      (pushover.app_token | trim == '')
+      or
+      (pushover.user_key is undefined)
+      or
+      (pushover.user_key is none)
+      or
+      (pushover.user_key | trim == '')
+    )
+  ignore_errors: yes

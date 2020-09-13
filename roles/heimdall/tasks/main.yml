@@ -1,0 +1,62 @@
+#########################################################################
+# Title:         Cloudbox: Heimdall Role                                #
+# Author(s):     TheBradz, desimaniac                                   #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# Docker Image:  linuxserver/heimdall                                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: "Set DNS Record on CloudFlare"
+  include_role:
+    name: cloudflare
+  vars:
+    subdomain: heimdall
+
+- name: Create htpasswd
+  htpasswd:
+    path: "/opt/nginx-proxy/htpasswd/{{item}}.{{domain}}"
+    name: "{{user}}"
+    password: "{{passwd}}"
+    owner: "{{user}}"
+    group: "{{user}}"
+    mode: 0664
+  with_items:
+    - heimdall
+
+- name: Stop and remove any existing container
+  docker_container:
+    name: heimdall
+    state: absent
+
+- name: Create heimdall directories
+  file: "path={{item}} state=directory mode=0775 owner={{user}} group={{user}}"
+  with_items:
+    - /opt/heimdall
+
+- name: Create and start container
+  docker_container:
+    name: heimdall
+    image: linuxserver/heimdall
+    pull: yes
+    env:
+      PUID: "{{uid}}"
+      PGID: "{{gid}}"
+      VIRTUAL_HOST: "heimdall.{{domain}}"
+      VIRTUAL_PORT: 80
+      LETSENCRYPT_HOST: "heimdall.{{domain}}"
+      LETSENCRYPT_EMAIL: "{{email}}"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/opt/heimdall:/config"
+    labels:
+      "com.github.cloudbox.cloudbox_managed": "true"
+    networks:
+      - name: cloudbox
+        aliases:
+          - heimdall
+    purge_networks: yes
+    restart_policy: unless-stopped
+    state: started

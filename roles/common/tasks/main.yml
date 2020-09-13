@@ -1,0 +1,189 @@
+#########################################################################
+# Title:         Cloudbox: Common Role                                  #
+# Author(s):     l3uddz, desimaniac                                     #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Create common directories
+  file: "path={{item}} state=directory mode=0775 owner={{user}} group={{user}}"
+  with_items:
+    - /home/{{user}}
+    - /home/{{user}}/logs
+    - /home/{{user}}/.config
+    - /home/{{user}}/.config/pip
+    - /opt
+    - /mnt/local
+
+- name: Btrfs Task
+  import_tasks: "btrfs.yml"
+
+- name: Create '/mnt/local' sub-directories
+  file: "path={{item}} state=directory mode=0775 owner={{user}} group={{user}}"
+  with_items:
+    - /mnt/local/Media
+    - /mnt/local/Media/Movies
+    - /mnt/local/Media/Music
+    - /mnt/local/Media/TV
+
+- name: Add multiverse repositories
+  apt_repository:
+    repo: "{{item}}"
+    state: present
+  with_items:
+    - 'deb http://archive.ubuntu.com/ubuntu {{ansible_distribution_release}} multiverse'
+    - 'deb-src http://archive.ubuntu.com/ubuntu {{ansible_distribution_release}} multiverse'
+    - 'deb http://archive.ubuntu.com/ubuntu {{ansible_distribution_release}}-updates multiverse'
+    - 'deb-src http://archive.ubuntu.com/ubuntu {{ansible_distribution_release}}-updates multiverse'
+  register: apt_multiverse_repositories
+  when: ansible_distribution == 'Ubuntu'
+  ignore_errors: yes
+
+- name: Update APT packages list
+  apt:
+    update_cache: yes
+  when: apt_multiverse_repositories.changed
+  ignore_errors: yes
+
+- name: Install common packages
+  apt: "name={{item}} state=present"
+  with_items:
+    - nano
+    - zip
+    - unzip
+    - p7zip
+    - curl
+    - httpie
+    - sqlite3
+    - tree
+    - lsof
+    - man-db
+    - ksmtuned
+    - git
+    - pwgen
+    - rsync
+    - logrotate
+    - htop
+    - iotop
+    - nload
+    - fail2ban
+    - ufw
+    - ncdu
+    - mc
+    - speedtest-cli
+    - dnsutils
+    - screen
+    - tmux
+    - apache2-utils
+    - jq
+    - lib32z1
+  ignore_errors: yes
+
+- name: Install unrar
+  apt: "name={{item}} state=present"
+  with_items:
+    - unrar
+  ignore_errors: yes
+
+- name: Check to see if unrar installed
+  stat:
+    path: "/usr/bin/unrar"
+  register: unrar_binary
+
+- name: Install unrar-free if unrar was not installed
+  apt: "name={{item}} state=present"
+  with_items:
+    - unrar-free
+  ignore_errors: yes
+  when: not unrar_binary.stat.exists
+
+- name: "Import pip.conf into /home/{{user}}/.config/pip/pip.conf"
+  copy:
+    src: "pip.conf"
+    dest: "/home/{{user}}/.config/pip/pip.conf"
+    owner: "{{user}}"
+    group: "{{user}}"
+    mode: 0775
+    force: yes
+
+- name: Install common pip modules
+  pip: "name={{item}} state=present"
+  with_items:
+    - passlib
+    - certbot
+    - ansible-toolbox
+    - ndg-httpsclient
+    - dnspython
+    - yq
+    - lxml
+    - apprise
+    - jmespath
+  ignore_errors: yes
+
+- name: Uninstall apt glances
+  apt: "name={{item}} state=absent"
+  with_items:
+    - glances
+  ignore_errors: yes
+  tags: glances
+
+- name: Install pip glances
+  shell: pip install glances[action,browser,cloud,cpuinfo,docker,folders,gpu,graph,ip,raid,snmp,web]
+  tags: glances
+
+- name: Install yyq
+  import_role:
+    name: yyq
+  tags: yyq
+  ignore_errors: yes
+
+- name: Install z
+  import_role:
+    name: z
+  tags: z
+  ignore_errors: yes
+
+- name: Install nodejs
+  import_role:
+    name: nodejs
+  tags: nodejs
+  ignore_errors: yes
+
+- name: Install hostess
+  import_role:
+    name: hostess
+  tags: hostess
+  ignore_errors: yes
+
+- name: Install ngrok
+  import_role:
+    name: ngrok
+  tags: ngrok
+  ignore_errors: yes
+
+- name: Install iperf3
+  import_role:
+    name: iperf3
+  tags: iperf3
+  ignore_errors: yes
+
+- name: Install nethogs
+  import_role:
+    name: nethogs
+  tags: nethogs
+  ignore_errors: yes
+
+- name: Install Subliminal
+  import_role:
+    name: subliminal
+  tags: subliminal
+  ignore_errors: yes
+
+- name: Cloudflare Cache Purge Task
+  import_tasks: "cloudflare_cache_purge.yml"
+  when: cloudflare_enabled
+  tags: cloudflare-cache-purge
+  ignore_errors: yes

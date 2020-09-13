@@ -1,0 +1,18 @@
+# /etc/systemd/system/unionfs.service
+
+[Unit]
+Description=UnionFS Mount
+After=network-online.target
+
+[Service]
+Type=forking
+GuessMainPID=no
+User={{user}}
+Group={{user}}
+ExecStart=/usr/bin/unionfs-fuse \
+  -o cow,allow_other,nonempty \
+  /mnt/local=RW:/mnt/remote=RO /mnt/unionfs
+ExecStop=/bin/fusermount -u /mnt/unionfs
+
+[Install]
+WantedBy=default.target

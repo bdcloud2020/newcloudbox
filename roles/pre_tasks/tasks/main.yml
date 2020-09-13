@@ -1,0 +1,58 @@
+#########################################################################
+# Title:         Cloudbox: Pre-Tasks Role                               #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Set User Variables
+  import_tasks: "user.yml"
+  tags: always
+
+- name: Clean Paths
+  import_tasks: "clean_paths.yml"
+  tags: always
+
+- name: Set Cloudbox vars
+  import_tasks: "vars.yml"
+  tags: always
+
+- name: Set Cloudbox role vars
+  import_tasks: "role_vars.yml"
+  tags: always
+
+# Sub-Domain Tasks
+- name: "Set Cloudbox Type to 'cloudbox'"
+  set_fact:
+    cloudbox_type: "cloudbox"
+  tags: cloudbox
+
+- name: "Set Cloudbox Type to 'mediabox'"
+  set_fact:
+    cloudbox_type: "mediabox"
+  tags: mediabox
+
+- name: "Set Cloudbox Type to 'feederbox'"
+  set_fact:
+    cloudbox_type: "feederbox"
+  tags: feederbox
+
+## Add cloudbox_type subdomain
+- name: "Cloudflare: Add '{{cloudbox_type}}' subdomain to '{{domain}}'"
+  import_tasks: "add_subdomain.yml"
+  when: cloudflare_enabled
+  tags:
+    - cloudbox
+    - mediabox
+    - feederbox
+
+## Remove cloudbox subdomain for Mediabox/Feederbox setups.
+- name: "Cloudflare: Remove 'cloudbox' subdomain from '{{domain}}'"
+  import_tasks: "remove_subdomain.yml"
+  when: cloudflare_enabled
+  tags:
+    - mediabox
+    - feederbox
