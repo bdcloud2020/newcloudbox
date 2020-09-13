@@ -1,0 +1,64 @@
+#########################################################################
+# Title:         Cloudbox: Cloudplow Role                               #
+# Author(s):     l3uddz, desimaniac                                     #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: Remove legacy service
+  include_tasks: "{{ resources_tasks_path }}/systemd/delete_service.yml"
+  vars:
+    _service_name: unionfs_cleaner
+
+- name: Stop Service
+  include_tasks: "{{ resources_tasks_path }}/systemd/stop_service.yml"
+  vars:
+    _service_name: "{{ cloudplow_service_name }}"
+
+- name: Update Service Credentials
+  include_tasks: "{{ resources_tasks_path }}/systemd/update_service_credentials.yml"
+  vars:
+    _service_name: "{{ cloudplow_service_name }}"
+
+- name: Create directory
+  file: "path={{ cloudplow_path }} state=directory owner={{ user.name }} group={{ user.name }} mode=0775 recurse=yes"
+
+- name: Clone project git repo
+  include_tasks: "{{ resources_tasks_path }}/git/clone_git_repo.yml"
+
+- name: Install pip requirements
+  pip:
+    requirements: "{{ cloudplow_requirements_path }}"
+    executable: "{{ cloudplow_pip_excutable }}"
+
+- name: Set script as executable
+  file:
+    path: "{{ cloudplow_script_path }}"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: a+x
+
+- name: Create script alias
+  file:
+    src: "{{ cloudplow_script_path }}"
+    dest: "{{ cloudplow_alias_path }}"
+    state: link
+
+- name: Import Settings Task
+  import_tasks: "subtasks/settings.yml"
+
+- name: Import '{{ cloudplow_service_name }}.service'
+  template:
+    src: cloudplow.service.j2
+    dest: "/etc/systemd/system/{{ cloudplow_service_name }}.service"
+    force: no
+
+- name: Start service
+  systemd:
+    name: "{{ cloudplow_service_name }}"
+    state: started
+    enabled: yes
+    daemon_reload: yes

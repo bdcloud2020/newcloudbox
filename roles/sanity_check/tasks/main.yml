@@ -1,0 +1,29 @@
+#########################################################################
+# Title:         Cloudbox: Sanity Check                                 #
+# Author(s):     l3uddz, desimaniac                                     #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: System Check
+  import_tasks: "subtasks/01_system.yml"
+  tags: always
+
+- name: Ansible Version Check
+  import_tasks: "subtasks/02_ansible_version.yml"
+  tags: always
+
+- name: Tags Check
+  import_tasks: "subtasks/03_ansible_tags.yml"
+  tags: always
+
+- name: Backup Lock Check
+  import_tasks: "subtasks/04_backup.yml"
+  tags: always
+
+- name: Touch Logs
+  import_tasks: "subtasks/05_logs.yml"
+  tags: always

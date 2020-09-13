@@ -1,0 +1,16 @@
+#########################################################################
+# Title:         Cloudbox: User Role                                    #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: User Account
+  import_tasks: "subtasks/user_account.yml"
+
+- name: Cloudbox Migrator
+  import_tasks: "subtasks/cloudbox_migrator.yml"
+  when: (not continuous_integration)

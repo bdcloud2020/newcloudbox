@@ -1,0 +1,17 @@
+#########################################################################
+# Title:         Cloudbox: Hetzner Role                                 #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: "Hetzner Tasks"
+  import_tasks: "subtasks/hetzner.yml"
+
+- name: "Restart Tasks"
+  include_tasks: "subtasks/restart.yml"
+  when: (reboot_is_necessary) and
+    (not continuous_integration)

@@ -1,0 +1,25 @@
+#########################################################################
+# Title:         Cloudbox: Notify | Variables                           #
+# Author(s):     desimaniac                                             #
+# URL:           https://github.com/cloudbox/cloudbox                   #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+################################
+# Notification Services List
+################################
+
+- name: Variables | Create empty 'notification_services' list
+  set_fact:
+    notification_services: []
+
+- name: Variables | Build 'notification_services' list
+  set_fact:
+    notification_services: "{{ notification_services + [ item.service ] }}"
+  when: item.enabled
+  loop:
+    - { service: 'apprise', enabled: '{{ apprise_account_is_enabled }}' }
+    - { service: 'pushover', enabled: '{{ pushover_account_is_enabled }}' }

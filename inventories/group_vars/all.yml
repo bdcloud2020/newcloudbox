@@ -1,0 +1,188 @@
+##########################################################################
+# Title:         Cloudbox: Global Variables                              #
+# Author(s):     desimaniac                                              #
+# URL:           https://github.com/cloudbox/cloudbox                    #
+# --                                                                     #
+#         Part of the Cloudbox project: https://cloudbox.works           #
+##########################################################################
+#                   GNU General Public License v3.0                      #
+##########################################################################
+---
+################################
+# Resources
+################################
+
+resources_tasks_path: "{{ playbook_dir }}/resources/tasks"
+
+################################
+# Continuous Integration
+################################
+
+continuous_integration: false
+
+################################
+# Accounts
+################################
+
+cloudflare_is_enabled: "{{  (cloudflare is defined) and
+                            (cloudflare is not none) and
+                            (cloudflare | trim | length > 0) and
+                            (cloudflare.email is defined) and
+                            (cloudflare.email is not none) and
+                            (cloudflare.email | trim | length > 0) and
+                            (cloudflare.api is defined) and
+                            (cloudflare.api is not none) and
+                            (cloudflare.api | trim | length > 0) }}"
+
+plex_account_is_enabled: "{{  (plex is defined) and
+                              (plex is not none) and
+                              (plex | trim | length > 0) and
+                              (plex.user is defined) and
+                              (plex.user is not none) and
+                              (plex.user | trim | length > 0) and
+                              (plex.pass is defined) and
+                              (plex.pass is not none) and
+                              (plex.pass | trim | length > 0) }}"
+
+################################
+# Role Conditionals
+################################
+
+nzbs_downloads_path_is_defined: "{{ (downloads is defined) and
+                                    (downloads is not none) and
+                                    (downloads | trim | length > 0) and
+                                    (downloads.nzbs is defined) and
+                                    (downloads.nzbs is not none) and
+                                    (downloads.nzbs | trim | length > 0) }}"
+
+use_nzbs: "{{ nzbs_downloads_path_is_defined }}"
+
+torrents_downloads_path_is_defined: "{{ (downloads is defined) and
+                                        (downloads is not none) and
+                                        (downloads | trim | length > 0) and
+                                        (downloads.torrents is defined) and
+                                        (downloads.torrents is not none) and
+                                        (downloads.torrents | trim | length > 0) }}"
+
+use_torrents: "{{ torrents_downloads_path_is_defined }}"
+
+feeder_mount_is_enabled:  "{{ (mounts is defined) and
+                              (mounts is not none) and
+                              (mounts | trim | length > 0) and
+                              (mounts.feeder is defined) and
+                              (mounts.feeder is not none) and
+                              (mounts.feeder | trim | length > 0) and
+                              (mounts.feeder) }}"
+
+rclone_remote_is_defined: "{{ (rclone is defined) and
+                              (rclone is not none) and
+                              (rclone | trim | length > 0) and
+                              (rclone.remote is defined) and
+                              (rclone.remote is not none) and
+                              (rclone.remote | trim | length > 0) }}"
+
+use_remote: "{{ feeder_mount_is_enabled or rclone_remote_is_defined }}"
+
+use_nvidia: "{{ gpu.nvidia.enabled  }}"
+
+use_sma: "{{ sickbeard_mp4_automator  | default(false,true) }}"
+
+################################
+# System
+################################
+
+server_root_path: "/"
+
+server_appdata_path: "{{ server_root_path | regex_replace('\\/$', '') + '/opt' }}"
+
+################################
+# Paths
+################################
+
+transcodes_path: "{{ plex.transcodes }}"
+
+################################
+# User
+################################
+
+uid: "{{ ansible_local.user[user.name].uid }}"
+
+gid: "{{ ansible_local.user[user.name].gid }}"
+
+vgid: "{{ ansible_local.group.video.gid }}"
+
+################################
+# Timezone
+################################
+
+tz: "{{ system.timezone
+        if system is defined and
+            system.timezone is defined and
+            'auto' not in system.timezone | lower
+        else ansible_local.timezone
+            if ansible_local is defined and
+                ansible_local.timezone is defined and
+                ansible_local.timezone | trim | length > 0
+        else 'Etc/UTC' }}"
+
+################################
+# Network
+################################
+
+ip_address_host: "0.0.0.0"
+
+ip_address_localhost: "127.0.0.1"
+
+ip_address_public: "{{ ansible_local.network.ip.public_ip | default(ansible_default_ipv4.address) }}"
+
+################################
+# Reverse Proxy
+################################
+
+reverse_proxy_is_enabled: "{{ (user is defined) and
+                              (user is not none) and
+                              (user | trim | length > 0) and
+                              (user.domain is defined) and
+                              (user.domain is not none) and
+                              (user.domain | trim | length > 0) and
+                              (user.email is defined) and
+                              (user.email is not none) and
+                              (user.email | trim | length > 0) }}"
+
+################################
+# Docker
+################################
+
+docker_envs_reverse_proxy_common:
+  VIRTUAL_HOST: "{{ lookup('vars', role_name + '_web_subdomain') }}.{{ lookup('vars', role_name + '_web_domain', default=user.domain) }}"
+  VIRTUAL_PORT: "{{ lookup('vars', role_name + '_web_port') }}"
+  LETSENCRYPT_HOST: "{{ lookup('vars', role_name + '_web_subdomain') }}.{{ lookup('vars', role_name + '_web_domain', default=user.domain) }}"
+  LETSENCRYPT_EMAIL: "{{ user.email }}"
+
+docker_volumes_downloads_nzbs: "{{ [downloads.nzbs + ':/downloads/nzbs']
+                                    if nzbs_downloads_path_is_defined
+                                    else [] }}"
+
+docker_volumes_downloads_torrents: "{{ [downloads.torrents + ':/downloads/torrents']
+                                        if torrents_downloads_path_is_defined
+                                        else [] }}"
+
+docker_volumes_downloads_common: "{{ docker_volumes_downloads_nzbs + docker_volumes_downloads_torrents }}"
+
+docker_hosts_common: []
+
+docker_labels_common:
+  "com.github.cloudbox.cloudbox_managed": "true"
+
+docker_networks_name_common: cloudbox
+
+docker_networks_common:
+  - name: "{{ docker_networks_name_common }}"
+    aliases:
+      - "{{ lookup('vars', role_name + '_docker_networks_alias') }}"
+
+################################
+# Cloudbox Version Manager
+################################
+
+cvm: https://cvm.cloudbox.works/version?url=

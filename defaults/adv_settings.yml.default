@@ -1,0 +1,34 @@
+---
+system:
+  timezone: auto
+dns:
+  enabled: yes
+reverse_proxy:
+  wildcard_certs: yes
+docker:
+  repo: edge
+  version: latest
+mounts:
+  unionfs: mergerfs
+  remote: rclone_vfs
+  feeder: no
+plex:
+  open_main_ports: no
+  force_auto_adjust_quality: no
+  force_high_output_bitrates: no
+  db_cache_size: default
+darkerr:
+  enable: no
+organizr:
+  direct_domain: no
+nginx:
+  direct_domain: no
+  subdomain: web
+ombi:
+  subdomain: ombi
+sickbeard_mp4_automator: no
+gpu:
+  intel: yes
+  nvidia:
+    enabled: no
+    driver: 418.30
